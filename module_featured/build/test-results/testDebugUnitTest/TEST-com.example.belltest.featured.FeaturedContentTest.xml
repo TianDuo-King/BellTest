@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.belltest.featured.FeaturedContentTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-11-10T01:56:01.006Z" hostname="BelldeMacBook-Pro.local" time="0.009">
+  <properties/>
+  <testcase name="videoItemsBecomeCardsWithReadableSourceHost" classname="com.example.belltest.featured.FeaturedContentTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,4 @@
+com.example.belltest.publish
+drawable publish_action_background
+id publish_root
+layout publish_fragment

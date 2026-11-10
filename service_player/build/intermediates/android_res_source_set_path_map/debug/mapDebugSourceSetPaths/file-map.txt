@@ -1,0 +1,9 @@
+com.example.belltest.player.service_player-pngs-0 /Users/bell/projects/BellTest/service_player/build/generated/res/pngs/debug
+com.example.belltest.player.service_player-updated_navigation_xml-1 /Users/bell/projects/BellTest/service_player/build/generated/updated_navigation_xml/debug
+com.example.belltest.player.service_player-mergeDebugResources-2 /Users/bell/projects/BellTest/service_player/build/intermediates/incremental/debug/mergeDebugResources/merged.dir
+com.example.belltest.player.service_player-mergeDebugResources-3 /Users/bell/projects/BellTest/service_player/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir
+com.example.belltest.player.service_player-debug-4 /Users/bell/projects/BellTest/service_player/build/intermediates/merged_res/debug/mergeDebugResources
+com.example.belltest.player.service_player-debug-5 /Users/bell/projects/BellTest/service_player/build/intermediates/packaged_res/debug/packageDebugResources
+com.example.belltest.player.service_player-debug-6 /Users/bell/projects/BellTest/service_player/src/debug/res
+com.example.belltest.player.service_player-main-7 /Users/bell/projects/BellTest/service_player/src/main/res
+gradleHome-0 /Users/bell/.gradle

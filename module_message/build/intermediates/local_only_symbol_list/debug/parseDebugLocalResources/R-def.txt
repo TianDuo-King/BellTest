@@ -1,0 +1,5 @@
+R_DEF: Internal format may change without notice
+local
+id message_module_chain
+id message_root
+layout message_fragment

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.belltest.feed.FeedPlaybackCoordinatorTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-10T01:58:25.954Z" hostname="BelldeMacBook-Pro.local" time="0.012">
+  <properties/>
+  <testcase name="changingPageStartsTheNewMediaFromTheBeginning" classname="com.example.belltest.feed.FeedPlaybackCoordinatorTest" time="0.009"/>
+  <testcase name="reenteringFeedResumesTheCurrentMedia" classname="com.example.belltest.feed.FeedPlaybackCoordinatorTest" time="0.0"/>
+  <testcase name="onlyCurrentMediaCallbacksAreAccepted" classname="com.example.belltest.feed.FeedPlaybackCoordinatorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

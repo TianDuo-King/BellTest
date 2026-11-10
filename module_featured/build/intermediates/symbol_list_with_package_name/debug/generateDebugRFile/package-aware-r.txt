@@ -1,0 +1,13 @@
+com.example.belltest.featured
+drawable featured_module_chain_background
+id featured_list
+id featured_module_chain
+id featured_root
+id preview_number
+id video_author
+id video_preview
+id video_source
+id video_title
+id watch_button
+layout featured_fragment
+layout featured_item_video

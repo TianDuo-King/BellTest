@@ -1,0 +1,9 @@
+com.example.belltest.ipc.lib_ipc-pngs-0 /Users/bell/projects/BellTest/lib_ipc/build/generated/res/pngs/debug
+com.example.belltest.ipc.lib_ipc-updated_navigation_xml-1 /Users/bell/projects/BellTest/lib_ipc/build/generated/updated_navigation_xml/debug
+com.example.belltest.ipc.lib_ipc-mergeDebugResources-2 /Users/bell/projects/BellTest/lib_ipc/build/intermediates/incremental/debug/mergeDebugResources/merged.dir
+com.example.belltest.ipc.lib_ipc-mergeDebugResources-3 /Users/bell/projects/BellTest/lib_ipc/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir
+com.example.belltest.ipc.lib_ipc-debug-4 /Users/bell/projects/BellTest/lib_ipc/build/intermediates/merged_res/debug/mergeDebugResources
+com.example.belltest.ipc.lib_ipc-debug-5 /Users/bell/projects/BellTest/lib_ipc/build/intermediates/packaged_res/debug/packageDebugResources
+com.example.belltest.ipc.lib_ipc-debug-6 /Users/bell/projects/BellTest/lib_ipc/src/debug/res
+com.example.belltest.ipc.lib_ipc-main-7 /Users/bell/projects/BellTest/lib_ipc/src/main/res
+gradleHome-0 /Users/bell/.gradle

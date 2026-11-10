@@ -1,0 +1,36 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /Users/bell/projects/BellTest/module_lab/src/main/AndroidManifest.xml:2:1-8:12
+INJECTED from /Users/bell/projects/BellTest/module_lab/src/main/AndroidManifest.xml:2:1-8:12
+	package
+		INJECTED from /Users/bell/projects/BellTest/module_lab/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /Users/bell/projects/BellTest/module_lab/src/main/AndroidManifest.xml:2:11-69
+application
+ADDED from /Users/bell/projects/BellTest/module_lab/src/main/AndroidManifest.xml:3:5-7:19
+activity#com.example.belltest.lab.LeakDemoActivity
+ADDED from /Users/bell/projects/BellTest/module_lab/src/main/AndroidManifest.xml:4:9-79
+	android:exported
+		ADDED from /Users/bell/projects/BellTest/module_lab/src/main/AndroidManifest.xml:4:52-76
+	android:name
+		ADDED from /Users/bell/projects/BellTest/module_lab/src/main/AndroidManifest.xml:4:19-51
+activity#com.example.belltest.lab.RxLearningActivity
+ADDED from /Users/bell/projects/BellTest/module_lab/src/main/AndroidManifest.xml:5:9-81
+	android:exported
+		ADDED from /Users/bell/projects/BellTest/module_lab/src/main/AndroidManifest.xml:5:54-78
+	android:name
+		ADDED from /Users/bell/projects/BellTest/module_lab/src/main/AndroidManifest.xml:5:19-53
+activity#com.example.belltest.lab.AsyncComparisonActivity
+ADDED from /Users/bell/projects/BellTest/module_lab/src/main/AndroidManifest.xml:6:9-86
+	android:exported
+		ADDED from /Users/bell/projects/BellTest/module_lab/src/main/AndroidManifest.xml:6:59-83
+	android:name
+		ADDED from /Users/bell/projects/BellTest/module_lab/src/main/AndroidManifest.xml:6:19-58
+uses-sdk
+INJECTED from /Users/bell/projects/BellTest/module_lab/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /Users/bell/projects/BellTest/module_lab/src/main/AndroidManifest.xml
+INJECTED from /Users/bell/projects/BellTest/module_lab/src/main/AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from /Users/bell/projects/BellTest/module_lab/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /Users/bell/projects/BellTest/module_lab/src/main/AndroidManifest.xml

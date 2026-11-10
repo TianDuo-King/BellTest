@@ -1,0 +1,21 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.example.belltest.player" >
+4
+5    <uses-sdk android:minSdkVersion="24" />
+5-->INJECTED
+5-->INJECTED
+6
+7    <application>
+7-->/Users/bell/projects/BellTest/service_player/src/main/AndroidManifest.xml:3:5-8:19
+8        <service
+8-->/Users/bell/projects/BellTest/service_player/src/main/AndroidManifest.xml:4:9-7:41
+9            android:name="com.example.belltest.player.RemoteVideoPlayerService"
+9-->/Users/bell/projects/BellTest/service_player/src/main/AndroidManifest.xml:5:13-53
+10            android:exported="false"
+10-->/Users/bell/projects/BellTest/service_player/src/main/AndroidManifest.xml:6:13-37
+11            android:process=":player" />
+11-->/Users/bell/projects/BellTest/service_player/src/main/AndroidManifest.xml:7:13-38
+12    </application>
+13
+14</manifest>

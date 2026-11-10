@@ -1,0 +1,26 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /Users/bell/projects/BellTest/service_player/src/main/AndroidManifest.xml:2:1-9:12
+INJECTED from /Users/bell/projects/BellTest/service_player/src/main/AndroidManifest.xml:2:1-9:12
+	package
+		INJECTED from /Users/bell/projects/BellTest/service_player/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /Users/bell/projects/BellTest/service_player/src/main/AndroidManifest.xml:2:11-69
+application
+ADDED from /Users/bell/projects/BellTest/service_player/src/main/AndroidManifest.xml:3:5-8:19
+service#com.example.belltest.player.RemoteVideoPlayerService
+ADDED from /Users/bell/projects/BellTest/service_player/src/main/AndroidManifest.xml:4:9-7:41
+	android:process
+		ADDED from /Users/bell/projects/BellTest/service_player/src/main/AndroidManifest.xml:7:13-38
+	android:exported
+		ADDED from /Users/bell/projects/BellTest/service_player/src/main/AndroidManifest.xml:6:13-37
+	android:name
+		ADDED from /Users/bell/projects/BellTest/service_player/src/main/AndroidManifest.xml:5:13-53
+uses-sdk
+INJECTED from /Users/bell/projects/BellTest/service_player/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /Users/bell/projects/BellTest/service_player/src/main/AndroidManifest.xml
+INJECTED from /Users/bell/projects/BellTest/service_player/src/main/AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from /Users/bell/projects/BellTest/service_player/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /Users/bell/projects/BellTest/service_player/src/main/AndroidManifest.xml

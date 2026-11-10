@@ -1,0 +1,181 @@
+package com.example.belltest.feed
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.Surface
+import android.view.View
+import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.viewpager2.widget.ViewPager2
+import com.example.belltest.base.applySystemBarsPadding
+import com.example.belltest.feed.databinding.FeedFragmentBinding
+import com.example.belltest.ipc.PlaybackSnapshot
+import com.example.belltest.ipc.RemotePlayerClient
+import com.example.belltest.model.DemoVideoCatalog
+
+class FeedFragment : Fragment() {
+    private var _binding: FeedFragmentBinding? = null
+    private val binding get() = requireNotNull(_binding)
+    private val items = DemoVideoCatalog.items
+    private val coordinator = FeedPlaybackCoordinator(items.map { it.id })
+
+    private lateinit var playerClient: RemotePlayerClient
+    private lateinit var pagerAdapter: FeedPagerAdapter
+    private var currentPosition = 0
+    private var connected = false
+    private var started = false
+    private var activeSurfaceToken = 0L
+    private var activeSurfacePosition = -1
+    private var currentSnapshot: PlaybackSnapshot? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        playerClient = RemotePlayerClient(requireContext(), playerListener)
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View {
+        _binding = FeedFragmentBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        binding.feedDiagnostics.applySystemBarsPadding(includeTop = true)
+        pagerAdapter = FeedPagerAdapter(items, surfaceListener) { position ->
+            if (position == currentPosition) startCurrentPlayback(resume = true)
+        }
+        binding.videoPager.adapter = pagerAdapter
+        binding.videoPager.orientation = ViewPager2.ORIENTATION_VERTICAL
+        binding.videoPager.offscreenPageLimit = 1
+        binding.videoPager.registerOnPageChangeCallback(pageChangeCallback)
+        pagerAdapter.render(currentPosition, currentSnapshot, connected)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        started = true
+        playerClient.bind()
+    }
+
+    override fun onStop() {
+        started = false
+        currentSnapshot?.let { coordinator.rememberPosition(it.mediaId, it.positionMs) }
+        clearActiveSurface()
+        playerClient.releaseAndUnbind()
+        connected = false
+        _binding?.let { pagerAdapter.render(currentPosition, currentSnapshot, false) }
+        super.onStop()
+    }
+
+    override fun onDestroyView() {
+        binding.videoPager.unregisterOnPageChangeCallback(pageChangeCallback)
+        binding.videoPager.adapter = null
+        _binding = null
+        super.onDestroyView()
+    }
+
+    private fun handleConnectionChanged(connected: Boolean, remotePid: Int?) {
+        this.connected = connected
+        _binding ?: return
+        binding.processBadge.text = if (connected) ":player PID $remotePid" else "连接 :player…"
+        pagerAdapter.render(currentPosition, currentSnapshot, connected)
+        if (connected && started) startCurrentPlayback(resume = true)
+    }
+
+    private fun handlePlaybackSnapshot(snapshot: PlaybackSnapshot) {
+        currentSnapshot = snapshot
+        coordinator.rememberPosition(snapshot.mediaId, snapshot.positionMs)
+        _binding ?: return
+        pagerAdapter.render(currentPosition, snapshot, connected)
+    }
+
+    private fun handleVideoSizeChanged(
+        mediaId: String,
+        width: Int,
+        height: Int,
+        pixelRatio: Float,
+    ) {
+        _binding ?: return
+        pagerAdapter.applyVideoSize(currentPosition, width, height, pixelRatio)
+    }
+
+    private fun handleSurfaceAvailable(position: Int, surface: Surface) {
+        if (position != currentPosition || !connected || !started) return
+        attachSurface(position, surface)
+    }
+
+    private fun handleSurfaceDestroyed(position: Int) {
+        if (position == activeSurfacePosition) clearActiveSurface()
+    }
+
+    private fun startCurrentPlayback(resume: Boolean) {
+        if (!connected || !started) return
+        clearActiveSurface()
+        pagerAdapter.surfaceAt(currentPosition)?.let { attachSurface(currentPosition, it) }
+        val item = items[currentPosition]
+        val startPosition = if (resume) playerClient.resumePosition(item.id).takeIf { it > 0L }
+            ?: coordinator.restoreCurrent().startPositionMs else 0L
+        playerClient.prepare(item.id, item.mediaUrl, startPosition, playWhenReady = true)
+        currentSnapshot = null
+        pagerAdapter.render(currentPosition, null, connected)
+    }
+
+    private fun attachSurface(position: Int, surface: Surface) {
+        clearActiveSurface()
+        activeSurfaceToken = playerClient.attachSurface(surface)
+        activeSurfacePosition = position
+    }
+
+    private fun clearActiveSurface() {
+        if (activeSurfaceToken != 0L) playerClient.clearSurface(activeSurfaceToken)
+        activeSurfaceToken = 0L
+        activeSurfacePosition = -1
+    }
+
+    private val pageChangeCallback = object : ViewPager2.OnPageChangeCallback() {
+        override fun onPageSelected(position: Int) {
+            if (position == currentPosition && currentSnapshot != null) return
+            currentPosition = position
+            currentSnapshot = null
+            coordinator.select(position)
+            _binding?.videoPager?.post {
+                if (_binding != null && currentPosition == position) {
+                    pagerAdapter.render(position, null, connected)
+                    startCurrentPlayback(resume = false)
+                }
+            }
+        }
+    }
+
+    private val playerListener = object : RemotePlayerClient.Listener {
+        override fun onConnectionChanged(connected: Boolean, remotePid: Int?) {
+            handleConnectionChanged(connected, remotePid)
+        }
+
+        override fun onPlaybackSnapshot(snapshot: PlaybackSnapshot) {
+            handlePlaybackSnapshot(snapshot)
+        }
+
+        override fun onVideoSizeChanged(
+            mediaId: String,
+            width: Int,
+            height: Int,
+            pixelRatio: Float,
+        ) {
+            handleVideoSizeChanged(mediaId, width, height, pixelRatio)
+        }
+    }
+
+    private val surfaceListener = object : FeedPagerAdapter.SurfaceListener {
+        override fun onSurfaceAvailable(position: Int, surface: Surface) {
+            handleSurfaceAvailable(position, surface)
+        }
+
+        override fun onSurfaceDestroyed(position: Int) {
+            handleSurfaceDestroyed(position)
+        }
+    }
+}

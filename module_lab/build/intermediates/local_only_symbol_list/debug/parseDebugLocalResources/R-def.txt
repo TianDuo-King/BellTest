@@ -1,0 +1,29 @@
+R_DEF: Internal format may change without notice
+local
+id btn_clear_group
+id btn_clear_log
+id btn_dispose_group
+id btn_reset_group
+id btn_start_error
+id btn_start_group
+id btn_start_single
+id btn_stop_single
+id callback_thread
+id cancel_button
+id close_button
+id fail_button
+id implementation_description
+id implementation_group
+id option_coroutines
+id option_rxjava
+id option_xtask
+id progress
+id result
+id start_button
+id status
+id tv_group_status
+id tv_log
+id tv_single_status
+layout lab_activity_async_comparison
+layout lab_activity_leak_demo
+layout lab_activity_rx_learning
