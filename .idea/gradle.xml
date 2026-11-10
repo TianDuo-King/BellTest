@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="GradleMigrationSettings" migrationVersion="1" />
   <component name="GradleSettings">
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
@@ -9,6 +10,16 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/lib_base" />
+            <option value="$PROJECT_DIR$/lib_ipc" />
+            <option value="$PROJECT_DIR$/lib_model" />
+            <option value="$PROJECT_DIR$/lib_resources" />
+            <option value="$PROJECT_DIR$/module_featured" />
+            <option value="$PROJECT_DIR$/module_feed" />
+            <option value="$PROJECT_DIR$/module_lab" />
+            <option value="$PROJECT_DIR$/module_message" />
+            <option value="$PROJECT_DIR$/module_user" />
+            <option value="$PROJECT_DIR$/service_player" />
           </set>
         </option>
       </GradleProjectSettings>
