@@ -2,31 +2,28 @@ package com.example.belltest.lab
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.example.belltest.base.enableEdgeToEdgeSystemBarPadding
+import com.example.belltest.base.BaseViewBindingActivity
 import com.example.belltest.lab.coroutines.CoroutineDemo
 import com.example.belltest.lab.databinding.LabActivityAsyncComparisonBinding
 import com.example.belltest.lab.rxjava.RxJavaDemo
 import com.example.belltest.lab.xtask.XTaskDemo
 
-class AsyncComparisonActivity : AppCompatActivity() {
-    private lateinit var binding: LabActivityAsyncComparisonBinding
+class AsyncComparisonActivity : BaseViewBindingActivity<LabActivityAsyncComparisonBinding>() {
     private lateinit var runners: Map<Int, DemoRunner>
     private lateinit var currentRunner: DemoRunner
     private lateinit var profilerLab: ProfilerLab
     private var requestId = 0
     private var loading = false
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = LabActivityAsyncComparisonBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        enableEdgeToEdgeSystemBarPadding(binding.root)
+    override fun inflateBinding(inflater: LayoutInflater): LabActivityAsyncComparisonBinding =
+        LabActivityAsyncComparisonBinding.inflate(inflater)
 
+    override fun onBindingCreated(savedInstanceState: Bundle?) {
         runners = mapOf(
             binding.optionXtask.id to XTaskDemo(),
             binding.optionRxjava.id to RxJavaDemo(),

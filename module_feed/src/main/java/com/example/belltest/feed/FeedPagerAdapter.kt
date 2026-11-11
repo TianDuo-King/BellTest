@@ -5,9 +5,8 @@ import android.view.LayoutInflater
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.ViewGroup
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.example.belltest.base.applySystemBarsPadding
 import com.example.belltest.feed.databinding.FeedItemVideoBinding
 import com.example.belltest.ipc.PlaybackContract
 import com.example.belltest.ipc.PlaybackSnapshot
@@ -24,9 +23,7 @@ internal class FeedPagerAdapter(
     }
 
     private val holders = mutableMapOf<Int, VideoViewHolder>()
-    private var renderedPosition = 0
-    private var snapshot: PlaybackSnapshot? = null
-    private var connected = false
+    private val renderState = FeedRenderState()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VideoViewHolder {
         val binding = FeedItemVideoBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -34,13 +31,19 @@ internal class FeedPagerAdapter(
     }
 
     override fun onBindViewHolder(holder: VideoViewHolder, position: Int) {
+        holders.entries.removeAll { it.value === holder }
         holders[position] = holder
-        holder.bind(items[position], position, position == renderedPosition, snapshot, connected)
+        holder.bind(
+            item = items[position],
+            position = position,
+            isCurrent = position == renderState.position,
+            playbackSnapshot = renderState.snapshot,
+            isConnected = renderState.connected,
+        )
     }
 
     override fun onViewRecycled(holder: VideoViewHolder) {
-        val position = holder.bindingAdapterPosition
-        if (position != RecyclerView.NO_POSITION) holders.remove(position)
+        holders.entries.removeAll { it.value === holder }
         holder.recycle()
         super.onViewRecycled(holder)
     }
@@ -50,12 +53,13 @@ internal class FeedPagerAdapter(
     fun surfaceAt(position: Int): Surface? = holders[position]?.validSurface()
 
     fun render(position: Int, newSnapshot: PlaybackSnapshot?, isConnected: Boolean) {
-        val oldPosition = renderedPosition
-        renderedPosition = position
-        snapshot = newSnapshot
-        connected = isConnected
-        if (oldPosition != position) notifyItemChanged(oldPosition)
-        notifyItemChanged(position)
+        renderState.update(position, newSnapshot, isConnected).forEach { changedPosition ->
+            holders[changedPosition]?.updatePlaybackState(
+                isCurrent = changedPosition == renderState.position,
+                playbackSnapshot = renderState.snapshot,
+                isConnected = renderState.connected,
+            )
+        }
     }
 
     fun applyVideoSize(position: Int, width: Int, height: Int, pixelRatio: Float) {
@@ -69,14 +73,7 @@ internal class FeedPagerAdapter(
 
         init {
             binding.surfaceView.holder.addCallback(this)
-            val initialTop = binding.topBar.paddingTop
-            ViewCompat.setOnApplyWindowInsetsListener(binding.topBar) { view, insets ->
-                val top = insets.getInsets(
-                    WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.displayCutout(),
-                ).top
-                view.setPadding(view.paddingLeft, initialTop + top, view.paddingRight, view.paddingBottom)
-                insets
-            }
+            binding.topBar.applySystemBarsPadding(includeTop = true)
         }
 
         fun bind(
@@ -90,9 +87,17 @@ internal class FeedPagerAdapter(
             binding.author.text = item.author
             binding.caption.text = item.caption
             binding.retryButton.setOnClickListener { retryListener(position) }
+            binding.playbackStatus.setTextColor(Color.WHITE)
+            updatePlaybackState(isCurrent, playbackSnapshot, isConnected)
+        }
+
+        fun updatePlaybackState(
+            isCurrent: Boolean,
+            playbackSnapshot: PlaybackSnapshot?,
+            isConnected: Boolean,
+        ) {
             binding.retryButton.visibility = android.view.View.GONE
             binding.loading.visibility = if (isCurrent) android.view.View.VISIBLE else android.view.View.GONE
-            binding.playbackStatus.setTextColor(Color.WHITE)
             if (!isCurrent) {
                 binding.playbackStatus.text = "向上滑动播放"
                 return

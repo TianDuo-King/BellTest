@@ -7,15 +7,19 @@ import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.example.belltest.feed.FeedFragment
 import com.example.belltest.feed.R as FeedR
 import com.example.belltest.featured.R as FeaturedR
 import com.example.belltest.message.R as MessageR
 import com.example.belltest.user.R as UserR
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.hamcrest.Matchers.allOf
 
 @RunWith(AndroidJUnit4::class)
 class MainNavigationTest {
@@ -35,6 +39,21 @@ class MainNavigationTest {
     fun bottomNavigationContainsTheFourProductModules() {
         listOf(R.id.nav_home, R.id.nav_featured, R.id.nav_message, R.id.nav_user).forEach { itemId ->
             onView(withId(itemId)).check(matches(isDisplayed()))
+        }
+    }
+
+    @Test
+    fun feedTopNavigationStartsBelowTheStatusBar() {
+        onView(allOf(withId(FeedR.id.top_bar), isDisplayed())).check { view, noViewException ->
+            if (noViewException != null) throw noViewException
+            val statusBarHeight = ViewCompat.getRootWindowInsets(view)
+                ?.getInsets(WindowInsetsCompat.Type.statusBars())
+                ?.top
+                ?: 0
+            assertTrue(
+                "feed top navigation paddingTop=${view.paddingTop} must be >= status bar height=$statusBarHeight",
+                view.paddingTop >= statusBarHeight,
+            )
         }
     }
 

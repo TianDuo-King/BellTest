@@ -245,6 +245,8 @@ class RemoteVideoPlayerService : Service() {
 
     private companion object {
         const val TAG = "RemoteVideoPlayer"
-        const val PROGRESS_INTERVAL_MS = 500L
+        // The UI only displays whole seconds, so a 1 Hz cross-process update avoids redundant
+        // Binder traffic and TextView layout work without making the progress label feel stale.
+        const val PROGRESS_INTERVAL_MS = 1_000L
     }
 }

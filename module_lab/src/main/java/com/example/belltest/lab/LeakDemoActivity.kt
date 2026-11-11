@@ -2,19 +2,17 @@ package com.example.belltest.lab
 
 import android.os.Bundle
 import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
-import com.example.belltest.base.enableEdgeToEdgeSystemBarPadding
+import android.view.LayoutInflater
+import com.example.belltest.base.BaseViewBindingActivity
 import com.example.belltest.lab.databinding.LabActivityLeakDemoBinding
 
-class LeakDemoActivity : AppCompatActivity() {
+class LeakDemoActivity : BaseViewBindingActivity<LabActivityLeakDemoBinding>() {
     private val memoryPayload = ByteArray(4 * 1024 * 1024).apply { fill(1) }
-    private lateinit var binding: LabActivityLeakDemoBinding
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = LabActivityLeakDemoBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        enableEdgeToEdgeSystemBarPadding(binding.root)
+    override fun inflateBinding(inflater: LayoutInflater): LabActivityLeakDemoBinding =
+        LabActivityLeakDemoBinding.inflate(inflater)
+
+    override fun onBindingCreated(savedInstanceState: Bundle?) {
         binding.closeButton.setOnClickListener { finish() }
         Log.d(TAG, "创建 Activity，数组大小=${memoryPayload.size}")
     }

@@ -1,32 +1,29 @@
 package com.example.belltest
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import androidx.activity.addCallback
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.lifecycle.Lifecycle
+import com.example.belltest.base.BaseViewBindingActivity
+import com.example.belltest.base.SystemBarInsetTarget
 import com.example.belltest.databinding.ActivityMainBinding
 import com.example.belltest.featured.FeaturedFragment
 import com.example.belltest.feed.FeedFragment
 import com.example.belltest.message.MessageFragment
 import com.example.belltest.user.UserFragment
 
-class MainActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityMainBinding
+class MainActivity : BaseViewBindingActivity<ActivityMainBinding>() {
     private var selectedTabId = R.id.nav_home
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+    override fun inflateBinding(inflater: LayoutInflater): ActivityMainBinding =
+        ActivityMainBinding.inflate(inflater)
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        configureSystemBars()
+    override fun systemBarInsetTargets(binding: ActivityMainBinding): List<SystemBarInsetTarget> =
+        listOf(SystemBarInsetTarget(binding.bottomNavigation, includeTop = false, includeBottom = true))
 
+    override fun onBindingCreated(savedInstanceState: Bundle?) {
         selectedTabId = savedInstanceState?.getInt(STATE_SELECTED_TAB) ?: R.id.nav_home
         binding.bottomNavigation.selectedItemId = selectedTabId
         binding.bottomNavigation.setOnItemSelectedListener { item -> showTab(item.itemId) }
@@ -46,22 +43,6 @@ class MainActivity : AppCompatActivity() {
                 onBackPressedDispatcher.onBackPressed()
             }
         }
-    }
-
-    private fun configureSystemBars() {
-        val initialBottom = binding.bottomNavigation.paddingBottom
-        ViewCompat.setOnApplyWindowInsetsListener(binding.bottomNavigation) { view, insets ->
-            val safe = insets.getInsets(
-                WindowInsetsCompat.Type.navigationBars() or WindowInsetsCompat.Type.displayCutout(),
-            )
-            view.setPadding(view.paddingLeft, view.paddingTop, view.paddingRight, initialBottom + safe.bottom)
-            insets
-        }
-        WindowCompat.getInsetsController(window, binding.root).apply {
-            isAppearanceLightStatusBars = false
-            isAppearanceLightNavigationBars = false
-        }
-        ViewCompat.requestApplyInsets(binding.root)
     }
 
     private fun showTab(itemId: Int): Boolean {

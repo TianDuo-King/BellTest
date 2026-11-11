@@ -2,8 +2,8 @@ package com.example.belltest.lab
 
 import android.os.Bundle
 import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
-import com.example.belltest.base.enableEdgeToEdgeSystemBarPadding
+import android.view.LayoutInflater
+import com.example.belltest.base.BaseViewBindingActivity
 import com.example.belltest.lab.databinding.LabActivityRxLearningBinding
 import io.reactivex.Observable
 import io.reactivex.Observer
@@ -12,19 +12,16 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 
-class RxLearningActivity : AppCompatActivity() {
-    private lateinit var binding: LabActivityRxLearningBinding
+class RxLearningActivity : BaseViewBindingActivity<LabActivityRxLearningBinding>() {
     private var singleDisposable: Disposable? = null
     private var compositeDisposable = CompositeDisposable()
 
     data class Tick(val number: Int, val sourceThread: String)
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = LabActivityRxLearningBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        enableEdgeToEdgeSystemBarPadding(binding.root)
+    override fun inflateBinding(inflater: LayoutInflater): LabActivityRxLearningBinding =
+        LabActivityRxLearningBinding.inflate(inflater)
 
+    override fun onBindingCreated(savedInstanceState: Bundle?) {
         binding.btnStartSingle.setOnClickListener { startSingleTask(failAt = null) }
         binding.btnStartError.setOnClickListener { startSingleTask(failAt = 4) }
         binding.btnStopSingle.setOnClickListener {

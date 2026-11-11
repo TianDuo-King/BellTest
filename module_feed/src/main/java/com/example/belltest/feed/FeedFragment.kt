@@ -3,19 +3,16 @@ package com.example.belltest.feed
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Surface
-import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
 import androidx.viewpager2.widget.ViewPager2
-import com.example.belltest.base.applySystemBarsPadding
+import com.example.belltest.base.BaseViewBindingFragment
+import com.example.belltest.base.SystemBarInsetTarget
 import com.example.belltest.feed.databinding.FeedFragmentBinding
 import com.example.belltest.ipc.PlaybackSnapshot
 import com.example.belltest.ipc.RemotePlayerClient
 import com.example.belltest.model.DemoVideoCatalog
 
-class FeedFragment : Fragment() {
-    private var _binding: FeedFragmentBinding? = null
-    private val binding get() = requireNotNull(_binding)
+class FeedFragment : BaseViewBindingFragment<FeedFragmentBinding>() {
     private val items = DemoVideoCatalog.items
     private val coordinator = FeedPlaybackCoordinator(items.map { it.id })
 
@@ -33,17 +30,13 @@ class FeedFragment : Fragment() {
         playerClient = RemotePlayerClient(requireContext(), playerListener)
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?,
-    ): View {
-        _binding = FeedFragmentBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+    override fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?): FeedFragmentBinding =
+        FeedFragmentBinding.inflate(inflater, container, false)
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        binding.feedDiagnostics.applySystemBarsPadding(includeTop = true)
+    override fun systemBarInsetTargets(binding: FeedFragmentBinding): List<SystemBarInsetTarget> =
+        listOf(SystemBarInsetTarget(binding.feedDiagnostics, includeTop = true))
+
+    override fun onBindingCreated(binding: FeedFragmentBinding, savedInstanceState: Bundle?) {
         pagerAdapter = FeedPagerAdapter(items, surfaceListener) { position ->
             if (position == currentPosition) startCurrentPlayback(resume = true)
         }
@@ -66,20 +59,18 @@ class FeedFragment : Fragment() {
         clearActiveSurface()
         playerClient.releaseAndUnbind()
         connected = false
-        _binding?.let { pagerAdapter.render(currentPosition, currentSnapshot, false) }
+        bindingOrNull?.let { pagerAdapter.render(currentPosition, currentSnapshot, false) }
         super.onStop()
     }
 
-    override fun onDestroyView() {
+    override fun onBindingDestroyed(binding: FeedFragmentBinding) {
         binding.videoPager.unregisterOnPageChangeCallback(pageChangeCallback)
         binding.videoPager.adapter = null
-        _binding = null
-        super.onDestroyView()
     }
 
     private fun handleConnectionChanged(connected: Boolean, remotePid: Int?) {
         this.connected = connected
-        _binding ?: return
+        bindingOrNull ?: return
         binding.processBadge.text = if (connected) ":player PID $remotePid" else "连接 :player…"
         pagerAdapter.render(currentPosition, currentSnapshot, connected)
         if (connected && started) startCurrentPlayback(resume = true)
@@ -88,7 +79,7 @@ class FeedFragment : Fragment() {
     private fun handlePlaybackSnapshot(snapshot: PlaybackSnapshot) {
         currentSnapshot = snapshot
         coordinator.rememberPosition(snapshot.mediaId, snapshot.positionMs)
-        _binding ?: return
+        bindingOrNull ?: return
         pagerAdapter.render(currentPosition, snapshot, connected)
     }
 
@@ -98,7 +89,7 @@ class FeedFragment : Fragment() {
         height: Int,
         pixelRatio: Float,
     ) {
-        _binding ?: return
+        bindingOrNull ?: return
         pagerAdapter.applyVideoSize(currentPosition, width, height, pixelRatio)
     }
 
@@ -141,8 +132,8 @@ class FeedFragment : Fragment() {
             currentPosition = position
             currentSnapshot = null
             coordinator.select(position)
-            _binding?.videoPager?.post {
-                if (_binding != null && currentPosition == position) {
+            bindingOrNull?.videoPager?.post {
+                if (bindingOrNull != null && currentPosition == position) {
                     pagerAdapter.render(position, null, connected)
                     startCurrentPlayback(resume = false)
                 }

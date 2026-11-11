@@ -2,30 +2,18 @@ package com.example.belltest.featured
 
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
-import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.belltest.base.applySystemBarsPadding
+import com.example.belltest.base.BaseViewBindingFragment
 import com.example.belltest.featured.databinding.FeaturedFragmentBinding
 import com.example.belltest.model.DemoVideoCatalog
 
-class FeaturedFragment : Fragment() {
-    private var _binding: FeaturedFragmentBinding? = null
-    private val binding get() = requireNotNull(_binding)
+class FeaturedFragment : BaseViewBindingFragment<FeaturedFragmentBinding>() {
+    override fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?): FeaturedFragmentBinding =
+        FeaturedFragmentBinding.inflate(inflater, container, false)
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?,
-    ): View {
-        _binding = FeaturedFragmentBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        binding.featuredRoot.applySystemBarsPadding(includeTop = true)
+    override fun onBindingCreated(binding: FeaturedFragmentBinding, savedInstanceState: Bundle?) {
         val cards = FeaturedContent.from(DemoVideoCatalog.items)
         binding.featuredList.layoutManager = LinearLayoutManager(requireContext())
         binding.featuredList.adapter = FeaturedVideoAdapter(cards) { card ->
@@ -36,10 +24,8 @@ class FeaturedFragment : Fragment() {
         }
     }
 
-    override fun onDestroyView() {
+    override fun onBindingDestroyed(binding: FeaturedFragmentBinding) {
         binding.featuredList.adapter = null
-        _binding = null
-        super.onDestroyView()
     }
 
     companion object {
