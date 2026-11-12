@@ -6,7 +6,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnAttach
 
 fun View.applySystemBarsPadding(includeTop: Boolean = true, includeBottom: Boolean = false) {
-    val initialLeft = paddingLeft
+    val initialLeft = paddingLeft//verify soso
     val initialTop = paddingTop
     val initialRight = paddingRight
     val initialBottom = paddingBottom
