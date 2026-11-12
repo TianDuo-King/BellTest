@@ -1,2 +1,0 @@
-int id social_root 0x0
-int layout social_fragment 0x0

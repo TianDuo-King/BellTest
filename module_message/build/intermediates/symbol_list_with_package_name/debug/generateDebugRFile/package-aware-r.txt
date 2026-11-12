@@ -1,4 +1,0 @@
-com.example.belltest.message
-id message_module_chain
-id message_root
-layout message_fragment

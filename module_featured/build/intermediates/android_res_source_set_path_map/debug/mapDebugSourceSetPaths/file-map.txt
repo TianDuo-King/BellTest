@@ -1,9 +1,0 @@
-com.example.belltest.featured.module_featured-pngs-0 /Users/bell/projects/BellTest/module_featured/build/generated/res/pngs/debug
-com.example.belltest.featured.module_featured-updated_navigation_xml-1 /Users/bell/projects/BellTest/module_featured/build/generated/updated_navigation_xml/debug
-com.example.belltest.featured.module_featured-mergeDebugResources-2 /Users/bell/projects/BellTest/module_featured/build/intermediates/incremental/debug/mergeDebugResources/merged.dir
-com.example.belltest.featured.module_featured-mergeDebugResources-3 /Users/bell/projects/BellTest/module_featured/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir
-com.example.belltest.featured.module_featured-debug-4 /Users/bell/projects/BellTest/module_featured/build/intermediates/merged_res/debug/mergeDebugResources
-com.example.belltest.featured.module_featured-debug-5 /Users/bell/projects/BellTest/module_featured/build/intermediates/packaged_res/debug/packageDebugResources
-com.example.belltest.featured.module_featured-debug-6 /Users/bell/projects/BellTest/module_featured/src/debug/res
-com.example.belltest.featured.module_featured-main-7 /Users/bell/projects/BellTest/module_featured/src/main/res
-gradleHome-0 /Users/bell/.gradle

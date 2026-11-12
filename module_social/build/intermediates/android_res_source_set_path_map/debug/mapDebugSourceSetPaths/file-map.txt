@@ -1,9 +1,0 @@
-com.example.belltest.social.module_social-pngs-0 /Users/bell/projects/BellTest/module_social/build/generated/res/pngs/debug
-com.example.belltest.social.module_social-updated_navigation_xml-1 /Users/bell/projects/BellTest/module_social/build/generated/updated_navigation_xml/debug
-com.example.belltest.social.module_social-mergeDebugResources-2 /Users/bell/projects/BellTest/module_social/build/intermediates/incremental/debug/mergeDebugResources/merged.dir
-com.example.belltest.social.module_social-mergeDebugResources-3 /Users/bell/projects/BellTest/module_social/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir
-com.example.belltest.social.module_social-debug-4 /Users/bell/projects/BellTest/module_social/build/intermediates/merged_res/debug/mergeDebugResources
-com.example.belltest.social.module_social-debug-5 /Users/bell/projects/BellTest/module_social/build/intermediates/packaged_res/debug/packageDebugResources
-com.example.belltest.social.module_social-debug-6 /Users/bell/projects/BellTest/module_social/src/debug/res
-com.example.belltest.social.module_social-main-7 /Users/bell/projects/BellTest/module_social/src/main/res
-gradleHome-0 /Users/bell/.gradle

@@ -1,3 +1,0 @@
-com.example.belltest.social
-id social_root
-layout social_fragment

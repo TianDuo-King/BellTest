@@ -1,6 +1,0 @@
-int id open_async_lab 0x0
-int id open_leak_lab 0x0
-int id open_rx_lab 0x0
-int id user_module_chain 0x0
-int id user_root 0x0
-int layout user_fragment 0x0

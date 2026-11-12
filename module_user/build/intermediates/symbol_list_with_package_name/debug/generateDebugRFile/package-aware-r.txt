@@ -1,7 +1,0 @@
-com.example.belltest.user
-id open_async_lab
-id open_leak_lab
-id open_rx_lab
-id user_module_chain
-id user_root
-layout user_fragment

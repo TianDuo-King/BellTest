@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.belltest.ipc.PlaybackRequestTrackerTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-09T11:06:36.572Z" hostname="BelldeMacBook-Pro.local" time="0.025">
-  <properties/>
-  <testcase name="requestIdsIncreaseAndOldSnapshotsAreRejected" classname="com.example.belltest.ipc.PlaybackRequestTrackerTest" time="0.008"/>
-  <testcase name="latestPositionIsRememberedPerMedia" classname="com.example.belltest.ipc.PlaybackRequestTrackerTest" time="0.001"/>
-  <testcase name="surfaceTokenOnlyClearsTheSurfaceThatCreatedIt" classname="com.example.belltest.ipc.PlaybackRequestTrackerTest" time="0.0"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>
