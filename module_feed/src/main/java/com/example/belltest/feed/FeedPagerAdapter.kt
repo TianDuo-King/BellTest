@@ -1,10 +1,13 @@
 package com.example.belltest.feed
 
 import android.graphics.Color
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.Surface
 import android.view.SurfaceHolder
+import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.example.belltest.base.applySystemBarsPadding
 import com.example.belltest.feed.databinding.FeedItemVideoBinding
@@ -53,13 +56,43 @@ internal class FeedPagerAdapter(
     fun surfaceAt(position: Int): Surface? = holders[position]?.validSurface()
 
     fun render(position: Int, newSnapshot: PlaybackSnapshot?, isConnected: Boolean) {
-        renderState.update(position, newSnapshot, isConnected).forEach { changedPosition ->
+        val previousPosition = renderState.position
+        val previousSnapshot = renderState.snapshot
+        val previousConnected = renderState.connected
+        val changedPositions = renderState.update(position, newSnapshot, isConnected)
+        val presentationChanged = previousPosition != position ||
+            previousConnected != isConnected ||
+            previousSnapshot.presentationKey() != newSnapshot.presentationKey()
+        if (!presentationChanged) return
+
+        changedPositions.forEach { changedPosition ->
             holders[changedPosition]?.updatePlaybackState(
                 isCurrent = changedPosition == renderState.position,
                 playbackSnapshot = renderState.snapshot,
                 isConnected = renderState.connected,
             )
         }
+    }
+
+    private fun PlaybackSnapshot?.presentationKey(): List<Any?> {
+        val snapshot = this
+        val bufferedPercentage = if (
+            snapshot != null &&
+            snapshot.playbackState == PlaybackContract.STATE_BUFFERING &&
+            snapshot.durationMs > 0L
+        ) {
+            (snapshot.bufferedPositionMs * 100L / snapshot.durationMs).coerceIn(0L, 100L)
+        } else {
+            null
+        }
+        return listOf(
+            snapshot?.requestId,
+            snapshot?.mediaId,
+            snapshot?.playbackState,
+            snapshot?.isPlaying,
+            snapshot?.errorMessage,
+            bufferedPercentage,
+        )
     }
 
     fun applyVideoSize(position: Int, width: Int, height: Int, pixelRatio: Float) {
@@ -86,6 +119,12 @@ internal class FeedPagerAdapter(
             boundPosition = position
             binding.author.text = item.author
             binding.caption.text = item.caption
+            binding.avatarText.text = item.avatarText
+            binding.videoTags.text = item.tags.joinToString(separator = "  ") { "#$it" }
+            binding.videoMeta.text = "${item.qualityLabel}  ·  ${item.durationLabel}  ·  磁盘缓存"
+            binding.likeCount.text = "♥\n${item.likeCount}"
+            binding.commentCount.text = "●\n${item.commentCount}"
+            binding.shareCount.text = "↗\n${item.shareCount}"
             binding.retryButton.setOnClickListener { retryListener(position) }
             binding.playbackStatus.setTextColor(Color.WHITE)
             updatePlaybackState(isCurrent, playbackSnapshot, isConnected)
@@ -96,33 +135,44 @@ internal class FeedPagerAdapter(
             playbackSnapshot: PlaybackSnapshot?,
             isConnected: Boolean,
         ) {
-            binding.retryButton.visibility = android.view.View.GONE
-            binding.loading.visibility = if (isCurrent) android.view.View.VISIBLE else android.view.View.GONE
+            binding.retryButton.visibility = View.GONE
+            binding.loading.visibility = if (isCurrent) View.VISIBLE else View.GONE
+            binding.playbackStatus.visibility = if (isCurrent) View.VISIBLE else View.GONE
             if (!isCurrent) {
-                binding.playbackStatus.text = "向上滑动播放"
                 return
             }
             if (!isConnected) {
-                binding.playbackStatus.text = "正在连接 :player 进程…"
+                binding.playbackStatus.text = "正在连接播放器…"
                 return
             }
             val state = playbackSnapshot?.playbackState ?: PlaybackContract.STATE_IDLE
             binding.playbackStatus.text = when (state) {
-                PlaybackContract.STATE_BUFFERING -> "远端缓冲中"
+                PlaybackContract.STATE_BUFFERING -> {
+                    val duration = playbackSnapshot?.durationMs ?: 0L
+                    val buffered = playbackSnapshot?.bufferedPositionMs ?: 0L
+                    val percentage = if (duration > 0L) {
+                        (buffered * 100L / duration).coerceIn(0L, 100L)
+                    } else {
+                        0L
+                    }
+                    if (percentage > 0L) "缓冲中 $percentage%" else "正在加载高清画面…"
+                }
                 PlaybackContract.STATE_READY -> if (playbackSnapshot?.isPlaying == true) {
-                    "远端播放中 · ${playbackSnapshot.positionMs / 1_000}s"
+                    ""
                 } else {
-                    "远端已就绪"
+                    "已暂停"
                 }
                 PlaybackContract.STATE_ENDED -> "播放结束"
                 PlaybackContract.STATE_ERROR -> playbackSnapshot?.errorMessage ?: "播放失败"
-                else -> "远端播放器准备中"
+                else -> "正在准备视频…"
             }
             val isError = state == PlaybackContract.STATE_ERROR
+            val isPlaying = state == PlaybackContract.STATE_READY && playbackSnapshot?.isPlaying == true
+            binding.playbackStatus.visibility = if (isPlaying) View.GONE else View.VISIBLE
             binding.loading.visibility = if (
                 state == PlaybackContract.STATE_READY || state == PlaybackContract.STATE_ENDED || isError
-            ) android.view.View.GONE else android.view.View.VISIBLE
-            binding.retryButton.visibility = if (isError) android.view.View.VISIBLE else android.view.View.GONE
+            ) View.GONE else View.VISIBLE
+            binding.retryButton.visibility = if (isError) View.VISIBLE else View.GONE
         }
 
         fun validSurface(): Surface? = binding.surfaceView.holder.surface.takeIf { it.isValid }
@@ -133,10 +183,23 @@ internal class FeedPagerAdapter(
                 val viewWidth = binding.pageRoot.width.toFloat()
                 val viewHeight = binding.pageRoot.height.toFloat()
                 if (viewWidth <= 0f || viewHeight <= 0f) return@post
-                val videoRatio = width * pixelRatio / height
+                val safePixelRatio = pixelRatio.takeIf { it > 0f } ?: 1f
+                val videoRatio = width * safePixelRatio / height
                 val viewRatio = viewWidth / viewHeight
-                binding.surfaceView.scaleX = if (videoRatio > viewRatio) videoRatio / viewRatio else 1f
-                binding.surfaceView.scaleY = if (videoRatio < viewRatio) viewRatio / videoRatio else 1f
+                val targetWidth: Int
+                val targetHeight: Int
+                if (videoRatio > viewRatio) {
+                    targetHeight = viewHeight.toInt()
+                    targetWidth = (viewHeight * videoRatio).toInt()
+                } else {
+                    targetWidth = viewWidth.toInt()
+                    targetHeight = (viewWidth / videoRatio).toInt()
+                }
+                binding.surfaceView.layoutParams = FrameLayout.LayoutParams(
+                    targetWidth,
+                    targetHeight,
+                    Gravity.CENTER,
+                )
             }
         }
 

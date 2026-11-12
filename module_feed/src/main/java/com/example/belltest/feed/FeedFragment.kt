@@ -4,10 +4,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Surface
 import android.view.ViewGroup
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.example.belltest.base.BaseViewBindingFragment
 import com.example.belltest.base.SystemBarInsetTarget
 import com.example.belltest.feed.databinding.FeedFragmentBinding
+import com.example.belltest.ipc.PlaybackContract
 import com.example.belltest.ipc.PlaybackSnapshot
 import com.example.belltest.ipc.RemotePlayerClient
 import com.example.belltest.model.DemoVideoCatalog
@@ -17,6 +19,7 @@ class FeedFragment : BaseViewBindingFragment<FeedFragmentBinding>() {
     companion object {
         const val REQUEST_OPEN_MEDIA = "feed:open-media"
         const val KEY_MEDIA_ID = "mediaId"
+        private const val PRELOAD_AFTER_BUFFERED_MS = 5_000L
     }
     private val items = DemoVideoCatalog.items
     private val coordinator = FeedPlaybackCoordinator(items.map { it.id })
@@ -29,6 +32,7 @@ class FeedFragment : BaseViewBindingFragment<FeedFragmentBinding>() {
     private var activeSurfaceToken = 0L
     private var activeSurfacePosition = -1
     private var currentSnapshot: PlaybackSnapshot? = null
+    private var preloadedAfterMediaId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,8 +71,7 @@ class FeedFragment : BaseViewBindingFragment<FeedFragmentBinding>() {
     override fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?): FeedFragmentBinding =
         FeedFragmentBinding.inflate(inflater, container, false)
 
-    override fun systemBarInsetTargets(binding: FeedFragmentBinding): List<SystemBarInsetTarget> =
-        listOf(SystemBarInsetTarget(binding.feedDiagnostics, includeTop = true))
+    override fun systemBarInsetTargets(binding: FeedFragmentBinding) = emptyList<SystemBarInsetTarget>()
 
     override fun onBindingCreated(binding: FeedFragmentBinding, savedInstanceState: Bundle?) {
         pagerAdapter = FeedPagerAdapter(items, surfaceListener) { position ->
@@ -76,7 +79,11 @@ class FeedFragment : BaseViewBindingFragment<FeedFragmentBinding>() {
         }
         binding.videoPager.adapter = pagerAdapter
         binding.videoPager.orientation = ViewPager2.ORIENTATION_VERTICAL
-        binding.videoPager.offscreenPageLimit = 1
+        binding.videoPager.offscreenPageLimit = 2
+        (binding.videoPager.getChildAt(0) as? RecyclerView)?.apply {
+            itemAnimator = null
+            setItemViewCacheSize(3)
+        }
         binding.videoPager.registerOnPageChangeCallback(pageChangeCallback)
         pagerAdapter.render(currentPosition, currentSnapshot, connected)
     }
@@ -102,10 +109,9 @@ class FeedFragment : BaseViewBindingFragment<FeedFragmentBinding>() {
         binding.videoPager.adapter = null
     }
 
-    private fun handleConnectionChanged(connected: Boolean, remotePid: Int?) {
+    private fun handleConnectionChanged(connected: Boolean) {
         this.connected = connected
         bindingOrNull ?: return
-        binding.processBadge.text = if (connected) ":player PID $remotePid" else "连接 :player…"
         pagerAdapter.render(currentPosition, currentSnapshot, connected)
         if (connected && started) startCurrentPlayback(resume = true)
     }
@@ -113,6 +119,17 @@ class FeedFragment : BaseViewBindingFragment<FeedFragmentBinding>() {
     private fun handlePlaybackSnapshot(snapshot: PlaybackSnapshot) {
         currentSnapshot = snapshot
         coordinator.rememberPosition(snapshot.mediaId, snapshot.positionMs)
+        val bufferedAheadMs = snapshot.bufferedPositionMs - snapshot.positionMs
+        if (
+            snapshot.playbackState == PlaybackContract.STATE_READY &&
+            bufferedAheadMs >= PRELOAD_AFTER_BUFFERED_MS &&
+            preloadedAfterMediaId != snapshot.mediaId
+        ) {
+            preloadedAfterMediaId = snapshot.mediaId
+            items.getOrNull((currentPosition + 1) % items.size)?.let { nextItem ->
+                playerClient.preload(nextItem.mediaUrl)
+            }
+        }
         bindingOrNull ?: return
         pagerAdapter.render(currentPosition, snapshot, connected)
     }
@@ -177,7 +194,7 @@ class FeedFragment : BaseViewBindingFragment<FeedFragmentBinding>() {
 
     private val playerListener = object : RemotePlayerClient.Listener {
         override fun onConnectionChanged(connected: Boolean, remotePid: Int?) {
-            handleConnectionChanged(connected, remotePid)
+            handleConnectionChanged(connected)
         }
 
         override fun onPlaybackSnapshot(snapshot: PlaybackSnapshot) {
@@ -203,4 +220,5 @@ class FeedFragment : BaseViewBindingFragment<FeedFragmentBinding>() {
             handleSurfaceDestroyed(position)
         }
     }
+
 }

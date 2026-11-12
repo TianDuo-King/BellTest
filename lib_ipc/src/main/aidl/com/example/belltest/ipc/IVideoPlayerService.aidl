@@ -11,6 +11,7 @@ interface IVideoPlayerService {
     oneway void play();
     oneway void pause();
     oneway void seekTo(long positionMs);
+    oneway void preload(String url);
     oneway void registerCallback(IVideoPlayerCallback callback);
     oneway void unregisterCallback(IVideoPlayerCallback callback);
     oneway void releasePlayback();

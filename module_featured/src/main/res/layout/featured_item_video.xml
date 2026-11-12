@@ -31,6 +31,7 @@
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/video_quality"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|end"
@@ -38,7 +39,7 @@
                 android:background="#99000000"
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="4dp"
-                android:text="网络视频"
+                android:text="HD  00:15"
                 android:textColor="#FFFFFFFF"
                 android:textSize="11sp" />
         </FrameLayout>
@@ -66,13 +67,25 @@
             android:textSize="14sp" />
 
         <TextView
+            android:id="@+id/video_tags"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:paddingStart="16dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="16dp"
+            android:textColor="#FF7EE8E2"
+            android:textSize="12sp" />
+
+        <TextView
             android:id="@+id/video_source"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingStart="16dp"
             android:paddingTop="8dp"
             android:paddingEnd="16dp"
-            android:textColor="#FF7EE8E2"
+            android:maxLines="1"
+            android:textColor="#99FFFFFF"
             android:textSize="12sp" />
 
         <Button

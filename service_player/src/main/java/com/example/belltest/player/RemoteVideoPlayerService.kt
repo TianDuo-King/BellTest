@@ -14,21 +14,26 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.database.StandaloneDatabaseProvider
+import androidx.media3.datasource.DataSpec
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.datasource.cache.CacheWriter
+import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
+import androidx.media3.datasource.cache.SimpleCache
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.example.belltest.ipc.IVideoPlayerCallback
 import com.example.belltest.ipc.IVideoPlayerService
 import com.example.belltest.ipc.PlaybackContract
 import com.example.belltest.ipc.PlaybackSnapshot
 import java.io.File
-import androidx.media3.common.util.UnstableApi
-import androidx.media3.database.StandaloneDatabaseProvider
-import androidx.media3.datasource.DefaultHttpDataSource
-import androidx.media3.datasource.cache.CacheDataSource
-import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
-import androidx.media3.datasource.cache.SimpleCache
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
-@UnstableApi @OptIn(UnstableApi::class)
+@UnstableApi
 class RemoteVideoPlayerService : Service() {
     private val mainHandler = Handler(Looper.getMainLooper())
     private val callbacks = RemoteCallbackList<IVideoPlayerCallback>()
@@ -44,6 +49,13 @@ class RemoteVideoPlayerService : Service() {
     private var lastError: PlaybackException? = null
     private lateinit var videoCache: SimpleCache
     private lateinit var cacheDataSourceFactory: CacheDataSource.Factory
+    private val preloadExecutor = Executors.newSingleThreadExecutor()
+
+    @Volatile
+    private var preloadWriter: CacheWriter? = null
+
+    @Volatile
+    private var preloadUrl: String? = null
 
     private val playerListener = object : Player.Listener {
         override fun onPlaybackStateChanged(playbackState: Int) {
@@ -138,6 +150,32 @@ class RemoteVideoPlayerService : Service() {
             mainHandler.post { player?.seekTo(positionMs.coerceAtLeast(0L)) }
         }
 
+        override fun preload(url: String?) {
+            if (url.isNullOrBlank() || url == preloadUrl) return
+            preloadUrl = url
+            preloadWriter?.cancel()
+            preloadExecutor.execute {
+                if (url != preloadUrl) return@execute
+                val writer = CacheWriter(
+                    cacheDataSourceFactory.createDataSource(),
+                    DataSpec.Builder()
+                        .setUri(url)
+                        .setLength(PRELOAD_BYTES)
+                        .build(),
+                    null,
+                    null,
+                )
+                preloadWriter = writer
+                runCatching { writer.cache() }
+                    .onFailure { error ->
+                        if (url == preloadUrl) {
+                            Log.w(TAG, "Preload skipped url=$url", error)
+                        }
+                    }
+                if (preloadWriter === writer) preloadWriter = null
+            }
+        }
+
         override fun registerCallback(callback: IVideoPlayerCallback?) {
             if (callback == null) return
             mainHandler.post {
@@ -163,19 +201,21 @@ class RemoteVideoPlayerService : Service() {
     override fun onCreate() {
         super.onCreate()
 
-        // 最大缓存 200MB
         videoCache = SimpleCache(
             File(cacheDir, "video_cache"),
-            LeastRecentlyUsedCacheEvictor(200L * 1024 * 1024),
-            StandaloneDatabaseProvider(this)
+            LeastRecentlyUsedCacheEvictor(CACHE_MAX_BYTES),
+            StandaloneDatabaseProvider(this),
         )
 
-        // 优先读取缓存，没有缓存则从网络下载
+        val httpDataSourceFactory = DefaultHttpDataSource.Factory()
+            .setConnectTimeoutMs(CONNECT_TIMEOUT_MS)
+            .setReadTimeoutMs(READ_TIMEOUT_MS)
+            .setAllowCrossProtocolRedirects(true)
+            .setUserAgent("BellTest/1.0")
+
         cacheDataSourceFactory = CacheDataSource.Factory()
             .setCache(videoCache)
-            .setUpstreamDataSourceFactory(
-                DefaultHttpDataSource.Factory()
-            )
+            .setUpstreamDataSourceFactory(httpDataSourceFactory)
             .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
 
         Log.i(TAG, "Remote player service created in pid=${Process.myPid()}")
@@ -186,8 +226,9 @@ class RemoteVideoPlayerService : Service() {
     override fun onDestroy() {
         releasePlayerOnMain()
         callbacks.kill()
-
-        // 释放缓存实例，缓存文件仍保留在磁盘
+        preloadWriter?.cancel()
+        preloadExecutor.shutdownNow()
+        runCatching { preloadExecutor.awaitTermination(300L, TimeUnit.MILLISECONDS) }
         videoCache.release()
 
         Log.i(TAG, "Remote player service destroyed in pid=${Process.myPid()}")
@@ -199,13 +240,25 @@ class RemoteVideoPlayerService : Service() {
 
         val mediaSourceFactory = DefaultMediaSourceFactory(this)
             .setDataSourceFactory(cacheDataSourceFactory)
+        val loadControl = DefaultLoadControl.Builder()
+            .setBufferDurationsMsForStreaming(
+                MIN_BUFFER_MS,
+                MAX_BUFFER_MS,
+                BUFFER_FOR_PLAYBACK_MS,
+                BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS,
+            )
+            .setPrioritizeTimeOverSizeThresholdsForStreaming(true)
+            .build()
 
         return ExoPlayer.Builder(this)
             .setMediaSourceFactory(mediaSourceFactory)
+            .setLoadControl(loadControl)
             .build()
             .also { newPlayer ->
                 player = newPlayer
                 newPlayer.addListener(playerListener)
+                newPlayer.repeatMode = Player.REPEAT_MODE_ONE
+                newPlayer.setHandleAudioBecomingNoisy(true)
                 currentSurface?.let(newPlayer::setVideoSurface)
 
                 mainHandler.removeCallbacks(progressRunnable)
@@ -287,5 +340,13 @@ class RemoteVideoPlayerService : Service() {
         // The UI only displays whole seconds, so a 1 Hz cross-process update avoids redundant
         // Binder traffic and TextView layout work without making the progress label feel stale.
         const val PROGRESS_INTERVAL_MS = 1_000L
+        const val CACHE_MAX_BYTES = 512L * 1024L * 1024L
+        const val PRELOAD_BYTES = 8L * 1024L * 1024L
+        const val CONNECT_TIMEOUT_MS = 8_000
+        const val READ_TIMEOUT_MS = 15_000
+        const val MIN_BUFFER_MS = 12_000
+        const val MAX_BUFFER_MS = 60_000
+        const val BUFFER_FOR_PLAYBACK_MS = 800
+        const val BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS = 2_000
     }
 }

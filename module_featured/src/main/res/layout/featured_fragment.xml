@@ -24,7 +24,7 @@
         android:layout_marginTop="8dp"
         android:background="@drawable/featured_module_chain_background"
         android:padding="12dp"
-        android:text="精选调用链\napp → module_featured → lib_model"
+        android:text="本周热门 · 8 部高清内容\n播放后自动写入磁盘缓存"
         android:textColor="#FFB9FFFB"
         android:textSize="13sp"
         android:textStyle="bold" />
@@ -33,7 +33,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:text="这里读取共享视频目录；点击卡片可由 app 壳切回首页播放。"
+        android:text="动画、旅行、科幻和生活短片，点击任意卡片到首页连续播放。"
         android:textColor="#99FFFFFF"
         android:textSize="14sp" />
 

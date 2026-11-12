@@ -68,6 +68,26 @@
             android:textSize="14sp" />
 
         <TextView
+            android:id="@+id/video_tags"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:maxLines="1"
+            android:textColor="#FF82F5EA"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/video_meta"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="#66000000"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
+            android:textColor="#CCFFFFFF"
+            android:textSize="11sp" />
+
+        <TextView
             android:id="@+id/playback_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -90,6 +110,7 @@
         android:orientation="vertical">
 
         <TextView
+            android:id="@+id/avatar_text"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="@drawable/feed_avatar_background"
@@ -100,29 +121,32 @@
             android:textStyle="bold" />
 
         <TextView
+            android:id="@+id/like_count"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="22dp"
             android:gravity="center"
-            android:text="♥\n12.8w"
+            android:text="♥\n0"
             android:textColor="#FFFFFFFF"
             android:textSize="13sp" />
 
         <TextView
+            android:id="@+id/comment_count"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="22dp"
             android:gravity="center"
-            android:text="●\n8632"
+            android:text="●\n0"
             android:textColor="#FFFFFFFF"
             android:textSize="13sp" />
 
         <TextView
+            android:id="@+id/share_count"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="22dp"
             android:gravity="center"
-            android:text="↗\n分享"
+            android:text="↗\n0"
             android:textColor="#FFFFFFFF"
             android:textSize="13sp" />
     </LinearLayout>

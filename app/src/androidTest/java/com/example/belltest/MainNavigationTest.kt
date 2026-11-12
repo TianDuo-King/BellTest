@@ -58,8 +58,8 @@ class MainNavigationTest {
     }
 
     @Test
-    fun eachTabShowsItsModuleCallChain() {
-        onView(withId(FeedR.id.feed_module_chain)).check(matches(isDisplayed()))
+    fun eachTabShowsItsRootContent() {
+        onView(withId(FeedR.id.video_pager)).check(matches(isDisplayed()))
 
         onView(withId(R.id.nav_featured)).perform(click())
         onView(withId(FeaturedR.id.featured_module_chain)).check(matches(isDisplayed()))

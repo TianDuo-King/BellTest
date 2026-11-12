@@ -9,6 +9,10 @@ data class FeaturedCard(
     val author: String,
     val sourceHost: String,
     val accentColor: Long,
+    val tags: List<String>,
+    val qualityLabel: String,
+    val durationLabel: String,
+    val popularity: String,
 )
 
 object FeaturedContent {
@@ -20,6 +24,10 @@ object FeaturedContent {
             sourceHost = runCatching { URI(video.mediaUrl).host }.getOrNull().orEmpty()
                 .ifBlank { "未知媒体源" },
             accentColor = video.accentColor,
+            tags = video.tags,
+            qualityLabel = video.qualityLabel,
+            durationLabel = video.durationLabel,
+            popularity = "${video.likeCount} 喜欢 · ${video.commentCount} 评论",
         )
     }
 }

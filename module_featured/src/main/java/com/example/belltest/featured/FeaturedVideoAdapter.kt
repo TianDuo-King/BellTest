@@ -28,7 +28,9 @@ internal class FeaturedVideoAdapter(
             binding.previewNumber.text = (position + 1).toString().padStart(2, '0')
             binding.videoAuthor.text = card.author
             binding.videoTitle.text = card.title
-            binding.videoSource.text = "媒体源 · ${card.sourceHost}"
+            binding.videoQuality.text = "${card.qualityLabel}  ${card.durationLabel}"
+            binding.videoTags.text = card.tags.joinToString(separator = "  ") { "#$it" }
+            binding.videoSource.text = "${card.popularity} · ${card.sourceHost}"
             binding.watchButton.setOnClickListener { onWatch(card) }
             binding.root.setOnClickListener { onWatch(card) }
         }

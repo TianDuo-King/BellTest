@@ -146,6 +146,8 @@ class RemotePlayerClient(
 
     fun seekTo(positionMs: Long) = callRemote { it.seekTo(positionMs.coerceAtLeast(0L)) }
 
+    fun preload(url: String) = callRemote { it.preload(url) }
+
     fun resumePosition(mediaId: String): Long = tracker.resumePosition(mediaId)
 
     fun releaseAndUnbind() {
