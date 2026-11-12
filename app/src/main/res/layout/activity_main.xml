@@ -24,8 +24,6 @@
         app:itemActiveIndicatorStyle="@null"
         app:itemIconSize="24dp"
         app:itemIconTint="@color/app_nav_item_color"
-        app:itemPaddingBottom="7dp"
-        app:itemPaddingTop="7dp"
         app:itemRippleColor="@android:color/transparent"
         app:itemTextAppearanceActive="@style/AppBottomNavigationTextActive"
         app:itemTextAppearanceInactive="@style/AppBottomNavigationTextInactive"
