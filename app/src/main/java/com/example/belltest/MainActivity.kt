@@ -13,6 +13,7 @@ import com.example.belltest.featured.FeaturedFragment
 import com.example.belltest.feed.FeedFragment
 import com.example.belltest.message.MessageFragment
 import com.example.belltest.user.UserFragment
+import androidx.core.os.bundleOf
 
 class MainActivity : BaseViewBindingActivity<ActivityMainBinding>() {
     private var selectedTabId = R.id.nav_home
@@ -31,8 +32,19 @@ class MainActivity : BaseViewBindingActivity<ActivityMainBinding>() {
         supportFragmentManager.setFragmentResultListener(
             FeaturedFragment.REQUEST_OPEN_FEED,
             this,
-        ) { _, _ ->
+        ) { _, result ->
+            val mediaId = result.getString(
+                FeaturedFragment.KEY_MEDIA_ID
+            ) ?: return@setFragmentResultListener
+
+            // 切换到首页
             binding.bottomNavigation.selectedItemId = R.id.nav_home
+
+            // 将目标视频 ID 传递给 FeedFragment
+            supportFragmentManager.setFragmentResult(
+                FeedFragment.REQUEST_OPEN_MEDIA,
+                bundleOf(FeedFragment.KEY_MEDIA_ID to mediaId)
+            )
         }
 
         onBackPressedDispatcher.addCallback(this) {

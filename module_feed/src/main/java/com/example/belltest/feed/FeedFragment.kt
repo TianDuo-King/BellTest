@@ -13,6 +13,11 @@ import com.example.belltest.ipc.RemotePlayerClient
 import com.example.belltest.model.DemoVideoCatalog
 
 class FeedFragment : BaseViewBindingFragment<FeedFragmentBinding>() {
+
+    companion object {
+        const val REQUEST_OPEN_MEDIA = "feed:open-media"
+        const val KEY_MEDIA_ID = "mediaId"
+    }
     private val items = DemoVideoCatalog.items
     private val coordinator = FeedPlaybackCoordinator(items.map { it.id })
 
@@ -27,7 +32,36 @@ class FeedFragment : BaseViewBindingFragment<FeedFragmentBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        playerClient = RemotePlayerClient(requireContext(), playerListener)
+
+        playerClient = RemotePlayerClient(
+            requireContext(),
+            playerListener
+        )
+
+        // 监听其他模块传递过来的视频 ID
+        parentFragmentManager.setFragmentResultListener(
+            REQUEST_OPEN_MEDIA,
+            this
+        ) { _, result ->
+
+            val mediaId = result.getString(KEY_MEDIA_ID)
+                ?: return@setFragmentResultListener
+
+            // 在视频列表中查找指定视频
+            val targetPosition = items.indexOfFirst {
+                it.id == mediaId
+            }
+
+            if (targetPosition == -1) {
+                return@setFragmentResultListener
+            }
+
+            // 跳转到对应的视频位置
+            bindingOrNull?.videoPager?.setCurrentItem(
+                targetPosition,
+                false
+            )
+        }
     }
 
     override fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?): FeedFragmentBinding =

@@ -19,7 +19,16 @@ import com.example.belltest.ipc.IVideoPlayerCallback
 import com.example.belltest.ipc.IVideoPlayerService
 import com.example.belltest.ipc.PlaybackContract
 import com.example.belltest.ipc.PlaybackSnapshot
+import java.io.File
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.database.StandaloneDatabaseProvider
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
+import androidx.media3.datasource.cache.SimpleCache
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 
+@UnstableApi @OptIn(UnstableApi::class)
 class RemoteVideoPlayerService : Service() {
     private val mainHandler = Handler(Looper.getMainLooper())
     private val callbacks = RemoteCallbackList<IVideoPlayerCallback>()
@@ -33,6 +42,8 @@ class RemoteVideoPlayerService : Service() {
     private var currentSurfaceToken = 0L
     private var currentSurface: Surface? = null
     private var lastError: PlaybackException? = null
+    private lateinit var videoCache: SimpleCache
+    private lateinit var cacheDataSourceFactory: CacheDataSource.Factory
 
     private val playerListener = object : Player.Listener {
         override fun onPlaybackStateChanged(playbackState: Int) {
@@ -151,6 +162,22 @@ class RemoteVideoPlayerService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+
+        // 最大缓存 200MB
+        videoCache = SimpleCache(
+            File(cacheDir, "video_cache"),
+            LeastRecentlyUsedCacheEvictor(200L * 1024 * 1024),
+            StandaloneDatabaseProvider(this)
+        )
+
+        // 优先读取缓存，没有缓存则从网络下载
+        cacheDataSourceFactory = CacheDataSource.Factory()
+            .setCache(videoCache)
+            .setUpstreamDataSourceFactory(
+                DefaultHttpDataSource.Factory()
+            )
+            .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
+
         Log.i(TAG, "Remote player service created in pid=${Process.myPid()}")
     }
 
@@ -159,19 +186,31 @@ class RemoteVideoPlayerService : Service() {
     override fun onDestroy() {
         releasePlayerOnMain()
         callbacks.kill()
+
+        // 释放缓存实例，缓存文件仍保留在磁盘
+        videoCache.release()
+
         Log.i(TAG, "Remote player service destroyed in pid=${Process.myPid()}")
         super.onDestroy()
     }
 
     private fun ensurePlayer(): ExoPlayer {
         player?.let { return it }
-        return ExoPlayer.Builder(this).build().also { newPlayer ->
-            player = newPlayer
-            newPlayer.addListener(playerListener)
-            currentSurface?.let(newPlayer::setVideoSurface)
-            mainHandler.removeCallbacks(progressRunnable)
-            mainHandler.post(progressRunnable)
-        }
+
+        val mediaSourceFactory = DefaultMediaSourceFactory(this)
+            .setDataSourceFactory(cacheDataSourceFactory)
+
+        return ExoPlayer.Builder(this)
+            .setMediaSourceFactory(mediaSourceFactory)
+            .build()
+            .also { newPlayer ->
+                player = newPlayer
+                newPlayer.addListener(playerListener)
+                currentSurface?.let(newPlayer::setVideoSurface)
+
+                mainHandler.removeCallbacks(progressRunnable)
+                mainHandler.post(progressRunnable)
+            }
     }
 
     private fun attachSurfaceOnMain(surfaceToken: Long, surface: Surface) {
